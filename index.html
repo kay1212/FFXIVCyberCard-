@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>FFXIV CyberCardGenerator Ver.22</title>
+<title>FFXIV CyberCardGenerator Ver.23</title>
 <meta name="description" content="FF14のスクリーンショットとキャラクターデータから、13秒の横型IDビジュアル動画をブラウザ内で生成する非公式ファンツールです。"/>
 <style>
   :root {
@@ -758,7 +758,7 @@
 <div class="wrap">
 <div class="topbar">
 <div class="titlebox">
-<h1>FFXIV CyberCardGenerator <span style="font-size:.72em;font-weight:600;opacity:.72;white-space:nowrap;">Ver.22</span></h1>
+<h1>FFXIV CyberCardGenerator <span style="font-size:.72em;font-weight:600;opacity:.72;white-space:nowrap;">Ver.23</span></h1>
 <p>SSとキャラクターデータから、13秒の動くIDカード風キャラカを生成します。 <a href="https://x.com/hashtag/XIVCyberCard?src=hashtag_click" target="_blank" rel="noopener noreferrer">#XIVCyberCard</a></p>
 </div>
 </div>
@@ -1040,7 +1040,8 @@ SSはプレビュー上でドラッグして位置を調整できます。マウ
     "Chaos": ["Cerberus", "Louisoix", "Moogle", "Omega", "Phantom", "Ragnarok", "Sagittarius", "Spriggan"],
     "Light": ["Alpha", "Lich", "Odin", "Phoenix", "Raiden", "Shiva", "Twintania", "Zodiark"],
     "Shadow": ["Innocence", "Pixie", "Titania", "Tycoon"],
-    "Materia": ["Bismarck", "Ravana", "Sephirot", "Sophia", "Zurvan"]
+    "Materia": ["Bismarck", "Ravana", "Sephirot", "Sophia", "Zurvan"],
+    "Korea": ["초코보", "카벙클", "모그리", "톤베리", "펜리르"]
   };
 
   const RACES = {
@@ -2243,12 +2244,13 @@ SSはプレビュー上でドラッグして位置を調整できます。マウ
     select.innerHTML = "";
     Object.entries(groups).forEach(([groupName, items]) => {
       const optgroup = document.createElement("optgroup");
-      optgroup.label = groupName;
+      const isKoreanServerGroup = select === dataCenterSelect && groupName === "Korea";
+      optgroup.label = isKoreanServerGroup ? "韓国版" : groupName;
       items.forEach(item => {
         const pairValue = `${groupName}|${item}`;
         const option = document.createElement("option");
         option.value = pairValue;
-        option.textContent = `${groupName} / ${item}`;
+        option.textContent = isKoreanServerGroup ? item : `${groupName} / ${item}`;
         if (pairValue === selectedPair) option.selected = true;
         optgroup.appendChild(option);
       });
@@ -3380,7 +3382,10 @@ SSはプレビュー上でドラッグして位置を調整できます。マウ
 
     ctx.font = "700 22px Segoe UI, sans-serif";
     ctx.fillStyle = palette.subValue;
-    ctx.fillText(`${profileState.dataCenter.toUpperCase()} / ${profileState.world.toUpperCase()}`, origin.x, origin.y + 38);
+    const originWorldLabel = profileState.dataCenter === "Korea"
+      ? profileState.world
+      : `${profileState.dataCenter.toUpperCase()} / ${profileState.world.toUpperCase()}`;
+    ctx.fillText(originWorldLabel, origin.x, origin.y + 38);
     const raceClanLabel = profileState.race === FANTASIA_OPTION
       ? "Fantasia Addict"
       : `${profileState.race.toUpperCase()} / ${profileState.clan.toUpperCase()}`;
