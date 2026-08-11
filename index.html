@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>FFXIV CyberCardGenerator Ver.23</title>
+<title>FFXIV CyberCardGenerator Ver.25</title>
 <meta name="description" content="FF14のスクリーンショットとキャラクターデータから、13秒の横型IDビジュアル動画をブラウザ内で生成する非公式ファンツールです。"/>
 <style>
   :root {
@@ -758,7 +758,7 @@
 <div class="wrap">
 <div class="topbar">
 <div class="titlebox">
-<h1>FFXIV CyberCardGenerator <span style="font-size:.72em;font-weight:600;opacity:.72;white-space:nowrap;">Ver.23</span></h1>
+<h1>FFXIV CyberCardGenerator <span style="font-size:.72em;font-weight:600;opacity:.72;white-space:nowrap;">Ver.25</span></h1>
 <p>SSとキャラクターデータから、13秒の動くIDカード風キャラカを生成します。 <a href="https://x.com/hashtag/XIVCyberCard?src=hashtag_click" target="_blank" rel="noopener noreferrer">#XIVCyberCard</a></p>
 </div>
 </div>
@@ -1169,6 +1169,53 @@ SSはプレビュー上でドラッグして位置を調整できます。マウ
   };
 
   const DECAY_RATES = [1, 0.8, 0.6];
+
+  // カード表示用の主要傾向タグ。
+  // COMBAT / LIFE の最終補正とは切り離し、既存の項目別減衰後スコアだけで順位を決める。
+  const ACTIVITY_TAG_DEFINITIONS = [
+    { label: "HIGH-END", items: ["高難度", "レイド", "討滅戦", "アライアンスレイド", "固定活動"] },
+    { label: "PVP", items: ["PvP", "フロントライン", "クリスタルコンフリクト"] },
+    { label: "EXPLORATION", items: ["ディープダンジョン", "ヴァリアントダンジョン", "エウレカ", "ボズヤ戦線", "クレセントアイル"] },
+    { label: "DAILY", items: ["メインストーリー", "F.A.T.E.", "コンテンツルーレット"] },
+    { label: "CRAFT", items: ["クラフター", "金策"] },
+    { label: "GATHERING", items: ["ギャザラー", "ヌシ釣り"] },
+    { label: "HOUSING", items: ["ハウジング", "無人島"] },
+    { label: "PHOTO", items: ["ミラージュプリズム", "グループポーズ", "スタジオ巡り"] },
+    { label: "SOCIAL", items: ["ユーザーイベント", "RP", "演奏", "交流", "チャット中心", "初心者支援"] },
+    { label: "COLLECTOR", items: ["トレジャーハント", "ゴールドソーサー", "装備集め", "マウント集め", "ミニオン集め", "アチーブメント"] }
+  ];
+
+  const ACTIVITY_TAG_BY_ITEM = new Map();
+  ACTIVITY_TAG_DEFINITIONS.forEach((definition, index) => {
+    definition.items.forEach(item => ACTIVITY_TAG_BY_ITEM.set(item, { label: definition.label, index }));
+  });
+
+  function calculateActivityTags(details, limit = 3) {
+    const totals = new Map();
+    details.forEach(detail => {
+      const definition = ACTIVITY_TAG_BY_ITEM.get(detail.name);
+      if (!definition) return;
+      const current = totals.get(definition.label) || {
+        label: definition.label,
+        index: definition.index,
+        score: 0,
+        count: 0
+      };
+      current.score += detail.adjustedScore;
+      current.count += 1;
+      totals.set(definition.label, current);
+    });
+
+    return [...totals.values()]
+      .sort((a, b) => {
+        const magnitudeDiff = Math.abs(b.score) - Math.abs(a.score);
+        if (Math.abs(magnitudeDiff) > 1e-9) return magnitudeDiff;
+        if (b.count !== a.count) return b.count - a.count;
+        return a.index - b.index;
+      })
+      .slice(0, limit)
+      .map(entry => entry.label);
+  }
 
   function classifyActivity(score) {
     if (score <= -8.01) return { level: 1, label: "WARHOUND" };
@@ -1830,6 +1877,7 @@ SSはプレビュー上でドラッグして位置を調整できます。マウ
         label: "UNRATED",
         gaugePercent: 50,
         details: [],
+        tags: [],
         correction: null
       };
       return profileState.analysis;
@@ -1953,6 +2001,7 @@ SSはプレビュー上でドラッグして位置を調整できます。マウ
       label: classification.label,
       gaugePercent: ((score + 10) / 20) * 100,
       details,
+      tags: calculateActivityTags(details, 3),
       correction,
       combatJobCorrection: {
         amount: combatJobPenalty,
@@ -3155,7 +3204,7 @@ SSはプレビュー上でドラッグして位置を調整できます。マウ
       ctx.rotate(degToRad(arcP * 360));
       ctx.beginPath();
       ctx.arc(0, 0, size * 0.42, degToRad(-30), degToRad(30));
-      ctx.lineWidth = size * 0.08;
+      ctx.lineWidth = size * 0.035;
       ctx.strokeStyle = "rgba(255,255,255,0.9)";
       ctx.stroke();
       ctx.clip();
@@ -3408,6 +3457,12 @@ SSはプレビュー上でドラッグして位置を調整できます。マウ
 
     ctx.font = "700 30px Segoe UI, sans-serif";
     ctx.fillText(labelText, analysis.x, analysis.y + 144);
+
+    if (analysisData.valid && Array.isArray(analysisData.tags) && analysisData.tags.length) {
+      ctx.font = "650 15px Segoe UI, sans-serif";
+      ctx.fillStyle = palette.accentLine;
+      ctx.fillText(analysisData.tags.join(" / "), analysis.x, analysis.y + 181);
+    }
 
     ctx.font = "600 18px Segoe UI, sans-serif";
     ctx.fillStyle = palette.subLabel;
