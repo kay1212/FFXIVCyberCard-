@@ -6,8 +6,14 @@ FINAL FANTASY XIV向けの非公式・非営利ファンツールです。
 
 ## License
 
-This project is licensed under the MIT License.
+The original source code of this project is licensed under the MIT License.
 Copyright (c) 2026 scaledwonderer-droid
+
+FINAL FANTASY XIV and related assets, trademarks, screenshots, icons,
+and other copyrighted materials are property of SQUARE ENIX CO., LTD.
+and are not covered by the MIT License.
+
+© SQUARE ENIX
 
 ## 主な機能
 
