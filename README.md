@@ -4,6 +4,11 @@ FINAL FANTASY XIV向けの非公式・非営利ファンツールです。
 
 スクリーンショットとキャラクターデータを組み合わせ、1920×1080・12秒・30fpsの横型IDビジュアル動画をブラウザ内で生成します。
 
+## License
+
+This project is licensed under the MIT License.
+Copyright (c) 2026 scaledwonderer-droid
+
 ## 主な機能
 
 - 全面スクリーンショット表示
